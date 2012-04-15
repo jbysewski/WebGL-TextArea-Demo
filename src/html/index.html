@@ -6,7 +6,7 @@
 
 <script type="text/javascript" src="../js/gl-matrix-min.js"></script>
 
-<script id="shader-fs" type="x-shader/x-fragment">
+<script id="plain-shader-fs" type="x-shader/x-fragment">
     precision mediump float;
 
     void main(void) {
@@ -14,7 +14,7 @@
     }
 </script>
 
-<script id="shader-vs" type="x-shader/x-vertex">
+<script id="plain-shader-vs" type="x-shader/x-vertex">
     attribute vec3 aVertexPosition;
 
     uniform mat4 uMVMatrix;
@@ -78,11 +78,21 @@
     }
 
 
-    var shaderProgram;
+    var plainShader;
 
-    function initShaders() {
-        var fragmentShader = getShader(gl, "shader-fs");
-        var vertexShader = getShader(gl, "shader-vs");
+   function initShaders() {
+      plainShader = createProgram(
+            "plain-shader-fs", 
+            "plain-shader-vs", 
+            {vertexPositionAttribute: "aVertexPosition"}, 
+            {pMatrixUniform: "uPMatrix", mvMatrixUniform: "uMVMatrix"}
+      );
+   }
+
+    function createProgram(fsName, vsName, vertexArrayAttributes, uniforms) {
+      var shaderProgram;
+        var fragmentShader = getShader(gl, fsName);
+        var vertexShader = getShader(gl, vsName);
 
         shaderProgram = gl.createProgram();
         gl.attachShader(shaderProgram, vertexShader);
@@ -95,11 +105,15 @@
 
         gl.useProgram(shaderProgram);
 
-        shaderProgram.vertexPositionAttribute = gl.getAttribLocation(shaderProgram, "aVertexPosition");
-        gl.enableVertexAttribArray(shaderProgram.vertexPositionAttribute);
+        for (attribute in vertexArrayAttributes) {
+           shaderProgram[attribute] = gl.getAttribLocation(shaderProgram, vertexArrayAttributes[attribute]);
+           gl.enableVertexAttribArray(shaderProgram[attribute]);
+        }
 
-        shaderProgram.pMatrixUniform = gl.getUniformLocation(shaderProgram, "uPMatrix");
-        shaderProgram.mvMatrixUniform = gl.getUniformLocation(shaderProgram, "uMVMatrix");
+        for (uniform in uniforms) {
+           shaderProgram[uniform] = gl.getUniformLocation(shaderProgram, uniforms[uniform]);
+        }
+        return shaderProgram;
     }
 
 
@@ -107,8 +121,8 @@
     var pMatrix = mat4.create();
 
     function setMatrixUniforms() {
-        gl.uniformMatrix4fv(shaderProgram.pMatrixUniform, false, pMatrix);
-        gl.uniformMatrix4fv(shaderProgram.mvMatrixUniform, false, mvMatrix);
+        gl.uniformMatrix4fv(plainShader.pMatrixUniform, false, pMatrix);
+        gl.uniformMatrix4fv(plainShader.mvMatrixUniform, false, mvMatrix);
     }
 
 
@@ -152,14 +166,14 @@
 
         mat4.translate(mvMatrix, [-1.5, 0.0, -7.0]);
         gl.bindBuffer(gl.ARRAY_BUFFER, triangleVertexPositionBuffer);
-        gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, triangleVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(plainShader.vertexPositionAttribute, triangleVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
         setMatrixUniforms();
         gl.drawArrays(gl.TRIANGLES, 0, triangleVertexPositionBuffer.numItems);
 
 
         mat4.translate(mvMatrix, [3.0, 0.0, 0.0]);
         gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexPositionBuffer);
-        gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, squareVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(plainShader.vertexPositionAttribute, squareVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
         setMatrixUniforms();
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems);
     }
