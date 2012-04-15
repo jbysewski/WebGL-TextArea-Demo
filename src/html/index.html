@@ -5,6 +5,7 @@
 <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
 
 <script type="text/javascript" src="../js/gl-matrix-min.js"></script>
+<script type="text/javascript" src="../js/primitives.js"></script>
 
 <script id="plain-shader-fs" type="x-shader/x-fragment">
     precision mediump float;
@@ -39,6 +40,7 @@
         if (!gl) {
             alert("Could not initialise WebGL, sorry :-(");
         }
+        gl.enableVertexAttribArray(0);
     }
 
 
@@ -103,11 +105,8 @@
             alert("Could not initialise shaders");
         }
 
-        gl.useProgram(shaderProgram);
-
-        for (attribute in vertexArrayAttributes) {
-           shaderProgram[attribute] = gl.getAttribLocation(shaderProgram, vertexArrayAttributes[attribute]);
-           gl.enableVertexAttribArray(shaderProgram[attribute]);
+        for (attribute in attributes) {
+           shaderProgram[attribute] = gl.getAttribLocation(shaderProgram, attributes[attribute]);
         }
 
         for (uniform in uniforms) {
@@ -120,41 +119,13 @@
     var mvMatrix = mat4.create();
     var pMatrix = mat4.create();
 
-    function setMatrixUniforms() {
-        gl.uniformMatrix4fv(plainShader.pMatrixUniform, false, pMatrix);
-        gl.uniformMatrix4fv(plainShader.mvMatrixUniform, false, mvMatrix);
+    var triangle;
+    var square;
+
+    function createScene() {
+        triangle = new Triangle();
+        square = new Square();
     }
-
-
-
-    var triangleVertexPositionBuffer;
-    var squareVertexPositionBuffer;
-
-    function initBuffers() {
-        triangleVertexPositionBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, triangleVertexPositionBuffer);
-        var vertices = [
-             0.0,  1.0,  0.0,
-            -1.0, -1.0,  0.0,
-             1.0, -1.0,  0.0
-        ];
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
-        triangleVertexPositionBuffer.itemSize = 3;
-        triangleVertexPositionBuffer.numItems = 3;
-
-        squareVertexPositionBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexPositionBuffer);
-        vertices = [
-             1.0,  1.0,  0.0,
-            -1.0,  1.0,  0.0,
-             1.0, -1.0,  0.0,
-            -1.0, -1.0,  0.0
-        ];
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
-        squareVertexPositionBuffer.itemSize = 3;
-        squareVertexPositionBuffer.numItems = 4;
-    }
-
 
     function drawScene() {
         gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
@@ -162,29 +133,16 @@
 
         mat4.perspective(45, gl.viewportWidth / gl.viewportHeight, 0.1, 100.0, pMatrix);
 
-        mat4.identity(mvMatrix);
-
-        mat4.translate(mvMatrix, [-1.5, 0.0, -7.0]);
-        gl.bindBuffer(gl.ARRAY_BUFFER, triangleVertexPositionBuffer);
-        gl.vertexAttribPointer(plainShader.vertexPositionAttribute, triangleVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
-        setMatrixUniforms();
-        gl.drawArrays(gl.TRIANGLES, 0, triangleVertexPositionBuffer.numItems);
-
-
-        mat4.translate(mvMatrix, [3.0, 0.0, 0.0]);
-        gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexPositionBuffer);
-        gl.vertexAttribPointer(plainShader.vertexPositionAttribute, squareVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
-        setMatrixUniforms();
-        gl.drawArrays(gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems);
+        triangle.draw(plainShader);
+        square.draw(plainShader);
     }
-
 
 
     function webGLStart() {
         var canvas = document.getElementById("canvas");
         initGL(canvas);
         initShaders();
-        initBuffers();
+        createScene();
 
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
         gl.enable(gl.DEPTH_TEST);
