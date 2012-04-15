@@ -6,6 +6,7 @@
 
 <script type="text/javascript" src="../js/gl-matrix-min.js"></script>
 <script type="text/javascript" src="../js/primitives.js"></script>
+<script type="text/javascript" src="../js/shaderhelper.js"></script>
 
 <script id="plain-shader-fs" type="x-shader/x-fragment">
     precision mediump float;
@@ -43,44 +44,8 @@
         gl.enableVertexAttribArray(0);
     }
 
-
-    function getShader(gl, id) {
-        var shaderScript = document.getElementById(id);
-        if (!shaderScript) {
-            return null;
-        }
-
-        var str = "";
-        var k = shaderScript.firstChild;
-        while (k) {
-            if (k.nodeType == 3) {
-                str += k.textContent;
-            }
-            k = k.nextSibling;
-        }
-
-        var shader;
-        if (shaderScript.type == "x-shader/x-fragment") {
-            shader = gl.createShader(gl.FRAGMENT_SHADER);
-        } else if (shaderScript.type == "x-shader/x-vertex") {
-            shader = gl.createShader(gl.VERTEX_SHADER);
-        } else {
-            return null;
-        }
-
-        gl.shaderSource(shader, str);
-        gl.compileShader(shader);
-
-        if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-            alert(gl.getShaderInfoLog(shader));
-            return null;
-        }
-
-        return shader;
-    }
-
-
     var plainShader;
+    var textureShader;
 
    function initShaders() {
       plainShader = createProgram(
@@ -89,32 +54,14 @@
             {vertexPositionAttribute: "aVertexPosition"}, 
             {pMatrixUniform: "uPMatrix", mvMatrixUniform: "uMVMatrix"}
       );
+
+      textureShader = createProgram(
+            "texture-shader-fs", 
+            "texture-shader-vs", 
+            {vertexPositionAttribute: "aVertexPosition", textureCoordAttribute: "aTextureCoord"}, 
+            {pMatrixUniform: "uPMatrix", mvMatrixUniform: "uMVMatrix", uTexture: "uTexture"}
+      );
    }
-
-    function createProgram(fsName, vsName, vertexArrayAttributes, uniforms) {
-      var shaderProgram;
-        var fragmentShader = getShader(gl, fsName);
-        var vertexShader = getShader(gl, vsName);
-
-        shaderProgram = gl.createProgram();
-        gl.attachShader(shaderProgram, vertexShader);
-        gl.attachShader(shaderProgram, fragmentShader);
-        gl.linkProgram(shaderProgram);
-
-        if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
-            alert("Could not initialise shaders");
-        }
-
-        for (attribute in attributes) {
-           shaderProgram[attribute] = gl.getAttribLocation(shaderProgram, attributes[attribute]);
-        }
-
-        for (uniform in uniforms) {
-           shaderProgram[uniform] = gl.getUniformLocation(shaderProgram, uniforms[uniform]);
-        }
-        return shaderProgram;
-    }
-
 
     var mvMatrix = mat4.create();
     var pMatrix = mat4.create();
