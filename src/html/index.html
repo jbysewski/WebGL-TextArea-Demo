@@ -1,51 +1,78 @@
 <html>
 
-<head>
-<title>Learning WebGL &mdash; lesson 1</title>
-<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+   <head>
+      <title>Learning WebGL &mdash; lesson 1</title>
+      <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
 
-<script type="text/javascript" src="../js/gl-matrix-min.js"></script>
-<script type="text/javascript" src="../js/primitives.js"></script>
-<script type="text/javascript" src="../js/shaderhelper.js"></script>
+      <script type="text/javascript" src="../js/gl-matrix-min.js"></script>
+      <script type="text/javascript" src="../js/primitives.js"></script>
+      <script type="text/javascript" src="../js/shaderhelper.js"></script>
+      <script type="text/javascript" src="../js/texture.js"></script>
 
-<script id="plain-shader-fs" type="x-shader/x-fragment">
-    precision mediump float;
+      <script id="plain-shader-fs" type="x-shader/x-fragment">
+         precision mediump float;
 
-    void main(void) {
-        gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
-    }
-</script>
+         void main(void) {
+            gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+         }
+      </script>
 
-<script id="plain-shader-vs" type="x-shader/x-vertex">
-    attribute vec3 aVertexPosition;
+      <script id="plain-shader-vs" type="x-shader/x-vertex">
+         attribute vec3 aVertexPosition;
 
-    uniform mat4 uMVMatrix;
-    uniform mat4 uPMatrix;
+         uniform mat4 uMVMatrix;
+         uniform mat4 uPMatrix;
 
-    void main(void) {
-        gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
-    }
-</script>
+         void main(void) {
+            gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+         }
+      </script>
+
+      <script id="texture-shader-fs" type="x-shader/x-fragment">
+         precision mediump float;
+
+         varying vec2 vTextureCoord;
+         uniform sampler2D uSampler;
+
+         void main(void) {
+            //gl_FragColor = vec4(vTextureCoord.s, vTextureCoord.t, 1.0, 1.0);
+            gl_FragColor = texture2D(uSampler, vTextureCoord);
+         }
+      </script>
+
+      <script id="texture-shader-vs" type="x-shader/x-vertex">
+         attribute vec3 aVertexPosition;
+         attribute vec2 aTextureCoord;
+
+         uniform mat4 uMVMatrix;
+         uniform mat4 uPMatrix;
+
+         varying vec2 vTextureCoord;
+
+         void main(void) {
+            gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+            vTextureCoord = aTextureCoord;
+         }
+      </script>
 
 
 <script type="text/javascript">
 
-    var gl;
-    function initGL(canvas) {
-        try {
-            gl = canvas.getContext("experimental-webgl");
-            gl.viewportWidth = canvas.width;
-            gl.viewportHeight = canvas.height;
-        } catch (e) {
-        }
-        if (!gl) {
-            alert("Could not initialise WebGL, sorry :-(");
-        }
-        gl.enableVertexAttribArray(0);
-    }
+   var gl;
+   function initGL(canvas) {
+      try {
+         gl = canvas.getContext("experimental-webgl");
+         gl.viewportWidth = canvas.width;
+         gl.viewportHeight = canvas.height;
+      } catch (e) {
+      }
+      if (!gl) {
+         alert("Could not initialize WebGL, sorry :-(");
+      }
+   }
 
-    var plainShader;
-    var textureShader;
+   var plainShader;
+   var textureShader;
 
    function initShaders() {
       plainShader = createProgram(
@@ -53,49 +80,69 @@
             "plain-shader-vs", 
             {vertexPositionAttribute: "aVertexPosition"}, 
             {pMatrixUniform: "uPMatrix", mvMatrixUniform: "uMVMatrix"}
-      );
+            );
 
       textureShader = createProgram(
             "texture-shader-fs", 
             "texture-shader-vs", 
             {vertexPositionAttribute: "aVertexPosition", textureCoordAttribute: "aTextureCoord"}, 
-            {pMatrixUniform: "uPMatrix", mvMatrixUniform: "uMVMatrix", uTexture: "uTexture"}
-      );
+            {pMatrixUniform: "uPMatrix", mvMatrixUniform: "uMVMatrix", uTexture: "uSampler"}
+            );
    }
 
-    var mvMatrix = mat4.create();
-    var pMatrix = mat4.create();
+   var mvMatrix = mat4.create();
+   var pMatrix = mat4.create();
 
-    var triangle;
-    var square;
+   var triangle;
+   var square;
+   var squareTexCoordBuffer;
+   var texture;
 
-    function createScene() {
-        triangle = new Triangle();
-        square = new Square();
-    }
+   function createScene() {
+      triangle = new Triangle();
+      square = new Square();
+      texture = loadTexture("../media/Font.bmp");
+   }
 
-    function drawScene() {
-        gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+   function drawScene() {
+      requestAnimFrame(drawScene);
+      gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
+      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-        mat4.perspective(45, gl.viewportWidth / gl.viewportHeight, 0.1, 100.0, pMatrix);
+      mat4.perspective(45, gl.viewportWidth / gl.viewportHeight, 0.1, 100.0, pMatrix);
 
-        triangle.draw(plainShader);
-        square.draw(plainShader);
-    }
+      triangle.draw(plainShader);
+
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, texture);
+      gl.uniform1i(textureShader.uTexture, 0);
+      
+      square.draw(textureShader);
+   }
 
 
-    function webGLStart() {
-        var canvas = document.getElementById("canvas");
-        initGL(canvas);
-        initShaders();
-        createScene();
+   function webGLStart() {
+      var canvas = document.getElementById("canvas");
+      initGL(canvas);
+      initShaders();      
+      createScene();
 
-        gl.clearColor(0.0, 0.0, 0.0, 1.0);
-        gl.enable(gl.DEPTH_TEST);
+      gl.clearColor(0.0, 0.0, 0.0, 1.0);
+      gl.enable(gl.DEPTH_TEST);
 
-        drawScene();
-    }
+      drawScene();
+   }
+
+window.requestAnimFrame = (function() {
+  return window.requestAnimationFrame ||
+         window.webkitRequestAnimationFrame ||
+         window.mozRequestAnimationFrame ||
+         window.oRequestAnimationFrame ||
+         window.msRequestAnimationFrame ||
+         function(/* function FrameRequestCallback */ callback, /* DOMElement Element */ element) {
+           window.setTimeout(callback, 1000/60);
+         };
+})();
 
 
 </script>
@@ -105,7 +152,7 @@
 
 
 <body onload="webGLStart();">
-    <canvas id="canvas" style="border: none;" width="500" height="500"></canvas>
+   <canvas id="canvas" style="border: none;" width="500" height="500"></canvas>
 </body>
 
 </html>
