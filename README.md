@@ -2,6 +2,8 @@ WebGL-TextArea-Demo
 ===================
 This is a small demo project to get myself more familiar with JavaScript and
 WebGL. 
+[Live
+View](http://jbysewski.github.com/WebGL-TextArea-Demo/src/html/index.html)
 
 Details
 -------
