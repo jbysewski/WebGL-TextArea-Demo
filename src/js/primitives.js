@@ -15,10 +15,8 @@ function Triangle() {
    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
    this.triangleVertexPositionBuffer.itemSize = 3;
    this.triangleVertexPositionBuffer.numItems = 3;
-   this.draw = function(shader) {
+   this.draw = function(shader, mvMatrix) {
       gl.useProgram(shader);
-      mat4.identity(mvMatrix);
-      mat4.translate(mvMatrix, [-1.5, 0.0, -7.0]);
       gl.bindBuffer(gl.ARRAY_BUFFER, this.triangleVertexPositionBuffer);
       gl.vertexAttribPointer(shader.vertexPositionAttribute, this.triangleVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
       setShaderMatrixUniforms(shader, pMatrix, mvMatrix);
@@ -30,10 +28,10 @@ function Square() {
    this.squareVertexPositionBuffer = gl.createBuffer();
    gl.bindBuffer(gl.ARRAY_BUFFER, this.squareVertexPositionBuffer);
    vertices = [
-      1.0,  1.0,  0.0,
+      -1.0, -1.0,  0.0,
+       1.0, -1.0,  0.0,
       -1.0,  1.0,  0.0,
-      1.0, -1.0,  0.0,
-      -1.0, -1.0,  0.0
+       1.0,  1.0,  0.0
          ];
    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
    this.squareVertexPositionBuffer.itemSize = 3;
@@ -42,10 +40,10 @@ function Square() {
    this.squareTexCoordBuffer = gl.createBuffer();
    gl.bindBuffer(gl.ARRAY_BUFFER, this.squareTexCoordBuffer);
    var texCoords = [
-      1.0, 0.0,
-      0.0, 0.0,
+      0.0, 1.0,
       1.0, 1.0,
-      0.0, 1.0
+      0.0, 0.0,
+      1.0, 0.0
          ];
    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(texCoords), gl.STATIC_DRAW);
    this.squareTexCoordBuffer.itemSize = 2;
@@ -54,7 +52,7 @@ function Square() {
    this.draw = function(shader) {
       shader.bind();
       mat4.identity(mvMatrix);
-      mat4.translate(mvMatrix, [1.5, 0.0, -7.0]);
+      mat4.translate(mvMatrix, [1.5, -1.5, -6.0]);
       
       gl.bindBuffer(gl.ARRAY_BUFFER, this.squareVertexPositionBuffer);
       gl.vertexAttribPointer(shader.vertexPositionAttribute, this.squareVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);

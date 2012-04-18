@@ -12,8 +12,8 @@ function Font() {
    this.texCoordBuffer = [];
    for(var i=0; i<256; i++)
    {
-      var x = (i % 16) / 16.0;
-      var y = 0.9375 - (i / 16.0) / 16.0;
+      var x = (i % 16) / 16;   
+      var y = 0.9375 - Math.floor(i / 16) / 16;
 
       this.texCoordBuffer[i] = gl.createBuffer();
       gl.bindBuffer(gl.ARRAY_BUFFER, this.texCoordBuffer[i]);
@@ -23,12 +23,12 @@ function Font() {
          x,          1 - y - 0.0625,
          x + 0.0625, 1 - y - 0.0625
       ];
-      console.log(x, y, texCoords);
       gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(texCoords), gl.STATIC_DRAW);
    }
 
-   this.draw = function(shader, text, x, y) {
+   this.drawLine = function(shader, text, x, y) {
       shader.bind();
+      gl.disable(gl.DEPTH_TEST);
       
       gl.bindBuffer(gl.ARRAY_BUFFER, this.vertices);
       gl.vertexAttribPointer(shader.vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
@@ -36,7 +36,7 @@ function Font() {
       for(var i=0; i<text.length; i++)
       {
          mat4.identity(mvMatrix);
-         mat4.translate(mvMatrix, [x + (1.5*i), y, -30.0]);
+         mat4.translate(mvMatrix, [x + (1*i), y, -30.0]);
          
          gl.bindBuffer(gl.ARRAY_BUFFER, this.texCoordBuffer[text.charCodeAt(i)]);
          gl.vertexAttribPointer(shader.textureCoordAttribute, 2, gl.FLOAT, false, 0, 0);
