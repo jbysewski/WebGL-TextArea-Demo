@@ -8,9 +8,9 @@ function Triangle() {
    this.triangleVertexPositionBuffer = gl.createBuffer();
    gl.bindBuffer(gl.ARRAY_BUFFER, this.triangleVertexPositionBuffer);
    var vertices = [
-      0.0,  1.0,  0.0,
+       0.0,  1.0,  0.0,
       -1.0, -1.0,  0.0,
-      1.0, -1.0,  0.0
+       1.0, -1.0,  0.0
          ];
    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
    this.triangleVertexPositionBuffer.itemSize = 3;
@@ -52,7 +52,7 @@ function Square() {
    this.draw = function(shader) {
       shader.bind();
       mat4.identity(mvMatrix);
-      mat4.translate(mvMatrix, [1.5, -1.5, -6.0]);
+      mat4.translate(mvMatrix, [3, -2, -6.0]);
       
       gl.bindBuffer(gl.ARRAY_BUFFER, this.squareVertexPositionBuffer);
       gl.vertexAttribPointer(shader.vertexPositionAttribute, this.squareVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);

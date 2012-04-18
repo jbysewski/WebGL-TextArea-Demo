@@ -36,7 +36,7 @@ function Font() {
       for(var i=0; i<text.length; i++)
       {
          mat4.identity(mvMatrix);
-         mat4.translate(mvMatrix, [x + (1*i), y, -30.0]);
+         mat4.translate(mvMatrix, [x + (1*i), y, -70.0]);
          
          gl.bindBuffer(gl.ARRAY_BUFFER, this.texCoordBuffer[text.charCodeAt(i)]);
          gl.vertexAttribPointer(shader.textureCoordAttribute, 2, gl.FLOAT, false, 0, 0);

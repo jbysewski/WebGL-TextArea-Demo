@@ -111,7 +111,7 @@
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
       
       mat4.identity(mvMatrix);
-      mat4.translate(mvMatrix, [-1.5, 0.0, -7.0]);
+      mat4.translate(mvMatrix, [-7, -5, -15]);
       mat4.rotate(mvMatrix, new Date().getTime() / 1000, [0,0,1]);
 
       triangle.draw(plainShader, mvMatrix);
@@ -121,7 +121,42 @@
       gl.uniform1i(textureShader.uTexture, 0);
       
       square.draw(textureShader);
-      font.drawLine(textureShader, "Hallo WebGL!", 0.5, 0.0);
+      drawText(
+            "Hello WebGL!\n" +
+            "This is a test for a simple 2D bitmap font drawing technique.\n" +
+            "Every character is drawn as a textured quad consisting of two triangles.\n" + 
+            "These are then textured with a texture containing a map of 256 characters\n" + 
+            "(ASCII). As WebGL which implements OpenGL ES does not allow for GL_QUAD or\n" +
+            "DisplayLists other possibilites for optimization have to be investigated.\n\n" +
+            "Another problem is the vertical spacing of the individual characters,\n" + 
+            "currently non-monospaced fonts will look really akward. Kerning will have\n" +
+            "to be taken into account too. I'm filling up with lorem ipsum.\n" +
+            "Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo \n" +
+            "ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis \n" + 
+            "parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, \n" + 
+            "pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim. Donec \n" + 
+            "pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim, \n" + 
+            "rhoncus ut, imperdiet a, venenatis vitae, justo. Nullam dictum felis eu \n" +
+            "mollis pretium. Integer tincidunt. Cras dapibus. Vivamus elementum semper.\n" +
+            "Aenean vulputate eleifend tellus. Aenean leo ligula, porttitor eu, vitae,\n" + 
+            " eleifend ac, enim. Aliquam lorem ante, dapibus in, viverra quis, feugiat \n" +
+            "a, tellus. Phasellus viverra nulla ut metus varius laoreet. Quisque rutrum. \n" + 
+            "Aenean imperdiet. Etiam ultricies nisi vel augue. Curabitur ullamcorper \n" +
+            "ultricies nisi. Nam eget dui. Etiam rhoncus. Maecenas tempus, tellus eget \n" +
+            "condimentum rhoncus, sem quam semper libero, sit amet adipiscing sem neque \n" +
+            "sed ipsum. Nam quam nunc, blandit vel, luctus pulvinar, hendrerit id.\n" +
+            "Maecenas nec odio et ante tincidunt tempus. Donec vitae sapien ut libero \n" +
+            "venenatis faucibus. Nullam quis ante. Etiam sit amet orci eget eros \n" +
+            "tincidunt. Duis leo. Sed fringilla mauris sit amet nibh. Donec sodales \n" +
+            "sagittis magna. Sed consequat, leo eget bibendum sodales, augue velit.");
+   }
+
+   function drawText(text) {
+      var lines = text.split("\n");
+      for(var i=0; i<lines.length; i++)
+      {
+         font.drawLine(textureShader, lines[i], -36.0, 27 - i*1.5);
+      }
    }
 
 
@@ -161,7 +196,7 @@ window.requestAnimFrame = (function() {
 
 
 <body onload="webGLStart();">
-   <canvas id="canvas" style="border: none;" width="500" height="500"></canvas>
+   <canvas id="canvas" style="border: none;" width="800" height="600"></canvas>
 </body>
 
 </html>
