@@ -3,12 +3,17 @@
    <head>
       <title>WebGL TextArea Demo</title>
       <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
-
-      <script type="text/javascript" src="../js/gl-matrix-min.js"></script>
+      
       <script type="text/javascript" src="../js/primitives.js"></script>
       <script type="text/javascript" src="../js/shaderhelper.js"></script>
       <script type="text/javascript" src="../js/texture.js"></script>
       <script type="text/javascript" src="../js/font.js"></script>
+
+      <script type="text/javascript" src="../js/gl-matrix-min.js"></script>
+      <script type="text/javascript" src="../js/slider/range.js"></script>
+      <script type="text/javascript" src="../js/slider/timer.js"></script>
+      <script type="text/javascript" src="../js/slider/slider.js"></script>
+      <link type="text/css" rel="StyleSheet" href="../css/bluecurve/bluecurve.css" />
 
       <script id="plain-shader-fs" type="x-shader/x-fragment">
          precision mediump float;
@@ -155,7 +160,7 @@
       var lines = text.split("\n");
       for(var i=0; i<lines.length; i++)
       {
-         font.drawLine(textureShader, lines[i], -36.0, 27 - i*1.5);
+         font.drawLine(textureShader, lines[i], -36.0, 27 - i*1.5 + 40 - s.getValue());
       }
    }
 
@@ -188,7 +193,6 @@ window.requestAnimFrame = (function() {
          };
 })();
 
-
 </script>
 
 
@@ -196,7 +200,18 @@ window.requestAnimFrame = (function() {
 
 
 <body onload="webGLStart();">
-   <canvas id="canvas" style="border: none;" width="800" height="600"></canvas>
+   <div style="float: left">
+      <canvas id="canvas" style="border: none;" width="800" height="600"></canvas>
+   </div>
+   <div class="vertical dynamic-slider-control slider" id="slider" style="float: left; height: 200px"> 
+	   <input class="slider-input" id="slider-input"/>
+   </div>
+
+   <script type="text/javascript">
+      var s = new Slider(document.getElementById("slider"), document.getElementById("slider-input"), "vertical");
+      s.setMaximum(40)
+      s.setValue(40);
+   </script>
 </body>
 
 </html>
