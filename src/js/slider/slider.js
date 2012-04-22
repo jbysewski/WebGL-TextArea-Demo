@@ -258,9 +258,6 @@ Slider.eventHandlers = {
 			}
 			s.setValue(reset ? Slider._sliderDragData.startValue :
 						s.getMinimum() + boundSize * pos / size);
-         this.handle.style.cursor = "hand";
-         this.line.style.cursor = "hand";
-         this.element.style.cursor = "hand";
 			return false;
 		}
 		else {
