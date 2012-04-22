@@ -149,7 +149,7 @@
       var lines = text.split("\n");
       for(var i=0; i<lines.length; i++)
       {
-         font.drawLine(textureShader, lines[i], -28 * aspectRatio, 27 - i*1.5 + 70 - s.getValue());
+         font.drawLine(textureShader, lines[i], -28 * aspectRatio, 27 - i*1.5 + 100 - s.getValue());
       }
    }
 
@@ -179,7 +179,16 @@
          doc = iframe.contentDocument;
       else if(iframe.contentWindow)
          doc = iframe.contentWindow.document;
-      loremIpsum = doc.body.textContent;
+      loremIpsum = addLineBreak(doc.body.textContent, 200);
+   }
+
+   function addLineBreak(str, lineWidth) {
+      var result = '';
+      while (str.length > 0) {
+         result += str.substring(0, lineWidth) + '\n';
+         str = str.substring(lineWidth);
+      }
+      return result;
    }
 
    
@@ -201,8 +210,8 @@
 
    <script type="text/javascript">
       var s = new Slider(document.getElementById("slider"), document.getElementById("slider-input"), "vertical");
-      s.setMaximum(70)
-      s.setValue(70);
+      s.setMaximum(100)
+      s.setValue(100);
       s.onchange = function() {
          drawScene();
       }
