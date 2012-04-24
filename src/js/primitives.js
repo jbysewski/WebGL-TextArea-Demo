@@ -66,8 +66,8 @@ function Square() {
 }
 
 function Grid2D(width, height) {
-   this.squareVertexPositionBuffer = gl.createBuffer();
-   gl.bindBuffer(gl.ARRAY_BUFFER, this.squareVertexPositionBuffer);
+   this.vertexPositionBuffer = gl.createBuffer();
+   gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBuffer);
    
    var vertices = [];
    for(var y=0, i=0; y<height; y++) {
@@ -76,37 +76,22 @@ function Grid2D(width, height) {
             vertices[i++] = x;
             vertices[i++] = y;
             vertices[i++] = 0.0;
-
-            /*
-            vertices[i++] = x + width;//x / width;
-            vertices[i++] = y - height;//y / height;
-            vertices[i++] = 0.0;
-            
-            vertices[i++] = x - width;//x / width;
-            vertices[i++] = y + height;//y / height;
-            vertices[i++] = 0.0;
-            
-            vertices[i++] = x + width;//x / width;
-            vertices[i++] = y + height;//y / height;
-            vertices[i++] = 0.0;
-            */
         }
    }   
    
    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
-   this.squareVertexPositionBuffer.itemSize = 3;
-   this.squareVertexPositionBuffer.numItems = vertices.length / 3;         
-   this.vertices = vertices;
+   this.vertexPositionBuffer.itemSize = 3;
+   this.vertexPositionBuffer.numItems = vertices.length / 3;         
          
     this.draw = function(shader, x, y, z) {
       shader.bind();
       mat4.identity(mvMatrix);
       mat4.translate(mvMatrix, [x, y, z]);
       
-      gl.bindBuffer(gl.ARRAY_BUFFER, this.squareVertexPositionBuffer);
-      gl.vertexAttribPointer(shader.vertexPositionAttribute, this.squareVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);           
+      gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBuffer);
+      gl.vertexAttribPointer(shader.vertexPositionAttribute, this.vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);           
       setShaderMatrixUniforms(shader, pMatrix, mvMatrix);
       
-      gl.drawArrays(gl.POINTS, 0, this.squareVertexPositionBuffer.numItems);
+      gl.drawArrays(gl.POINTS, 0, this.vertexPositionBuffer.numItems);
    }
 }
