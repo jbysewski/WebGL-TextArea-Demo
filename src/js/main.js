@@ -1,7 +1,7 @@
 var gl;
 var aspectRatio;
 function setCanvasAndViewportSize() {
-   canvas.width = window.innerWidth - 50;
+   canvas.width = window.innerWidth - 70;
    canvas.height = window.innerHeight - 20;
    gl.viewportWidth = canvas.width;
    gl.viewportHeight = canvas.height;
