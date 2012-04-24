@@ -61,6 +61,46 @@
          }
       </script>
 
+      <script id="font-vs" type="x-shader/x-vertex">                
+         //attribute float index;
+         //attribute vec3 color;
+         attribute vec3 aVertexPosition;
+         uniform mat4 uMVMatrix;
+         uniform mat4 uPMatrix;
+
+         //varying vec2 findex;
+         //varying vec3 fcolor;
+
+         void main(void) {
+            /*
+            fcolor = vec3(1.0,mod(index/10.0,1.0),mod(index/10.0,1.0));
+
+            findex = vec2(mod(index,10.0) * 0.1, floor(index/10.0) * 0.1+0.1);
+            vec4 mvPosition = uMVMatrix * vec4(aVertexPosition, 1.0 );
+            gl_PointSize = 10.0;
+            */
+            gl_PointSize = 12.0;
+            gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+         }
+		</script>
+
+		<script id="font-fs" type="x-shader/x-fragment">
+         precision mediump float;
+
+         uniform sampler2D texture;
+         /*
+         varying vec2 findex;
+         varying vec3 fcolor;
+         */
+         void main() {
+            //vec2 pos = gl_PointCoord*vec2(0.1,-0.1) + findex;//-0.7,0.5);
+            //gl_FragColor = vec4(1,1,1,1);//vec4(fcolor,1.0) * texture2D( texture, pos );
+            //gl_FragColor = vec4(gl_FragCoord.y,1, 1, 1);
+            //gl_FragColor = vec4(gl_PointCoord, 1, 1);
+            gl_FragColor = texture2D(texture, gl_PointCoord / 10.0 + vec2(0.5, 0.5));
+         }
+		</script>
+
 
 <script type="text/javascript">
 
@@ -77,6 +117,7 @@
    function initGL(canvas) {
       try {
          gl = canvas.getContext("experimental-webgl",  { alpha: false });
+         gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);
          setCanvasAndViewportSize();
       } catch (e) {
       }
@@ -85,38 +126,39 @@
       }
    }
 
-   var plainShader;
-   var textureShader;
+   var plainShader, textureShader, fontShader;
 
    function initShaders() {
       plainShader = createProgram(
             "plain-shader-fs", 
             "plain-shader-vs", 
             {vertexPositionAttribute: "aVertexPosition"}, 
-            {pMatrixUniform: "uPMatrix", mvMatrixUniform: "uMVMatrix"}
-            );
+            {pMatrixUniform: "uPMatrix", mvMatrixUniform: "uMVMatrix"});
 
       textureShader = createProgram(
             "texture-shader-fs", 
             "texture-shader-vs", 
             {vertexPositionAttribute: "aVertexPosition", textureCoordAttribute: "aTextureCoord"}, 
-            {pMatrixUniform: "uPMatrix", mvMatrixUniform: "uMVMatrix", uTexture: "uSampler"}
-            );
+            {pMatrixUniform: "uPMatrix", mvMatrixUniform: "uMVMatrix", uTexture: "uSampler"});
+      
+      fontShader = createProgram(
+            "font-fs", 
+            "font-vs", 
+            {vertexPositionAttribute: "aVertexPosition"}, 
+            {pMatrixUniform: "uPMatrix", mvMatrixUniform: "uMVMatrix", uTexture: "texture"});
    }
 
    var mvMatrix = mat4.create();
    var pMatrix = mat4.create();
 
-   var triangle;
-   var square;
-   var texture;
-   var font;
+   var triangle, square, texture, grid2d;
 
    function createScene() {
       triangle = new Triangle();
       square = new Square();
-      texture = loadTexture("../media/Monospaced.png");
-      font = new Font();
+      //texture = loadTexture("../media/Monospaced.png");
+      texture = createTextureFromCanvas(createFontCanvas(128, 128, "monospaced", "12px"));
+      grid2d = new Grid2D(100, 100);
    }
 
    function drawScene() {
@@ -131,7 +173,12 @@
       gl.activeTexture(gl.TEXTURE0);
       gl.bindTexture(gl.TEXTURE_2D, texture);
       gl.uniform1i(textureShader.uTexture, 0);
-      
+      gl.uniform1i(fontShader.uTexture, 0);
+
+      square.draw(textureShader, 3, -3, -10);
+      grid2d.draw(fontShader, -50, -5 - 100 + s.getValue() , -50);      
+
+      /*
       drawText(
             "Hello WebGL!\n" +
             "This is a test for a simple 2D bitmap font drawing technique.\n" +
@@ -143,14 +190,7 @@
             "currently non-monospaced fonts will look really akward. Kerning will have\n" +
             "to be taken into account too. I'm filling up with lorem ipsum.\n" +
             loremIpsum);
-   }
-
-   function drawText(text) {
-      var lines = text.split("\n");
-      for(var i=0; i<lines.length; i++)
-      {
-         font.drawLine(textureShader, lines[i], -28 * aspectRatio, 27 - i*1.5 + 100 - s.getValue());
-      }
+            */
    }
 
    var canvas;
@@ -171,27 +211,6 @@
       window.setTimeout(drawScene, 100);
    }
 
-   var loremIpsum;
-   function readLoremIpsum() {
-      var iframe = document.getElementById("LoremIpsum");
-      var doc;
-      if(iframe.contentDocument)
-         doc = iframe.contentDocument;
-      else if(iframe.contentWindow)
-         doc = iframe.contentWindow.document;
-      loremIpsum = addLineBreak(doc.body.textContent, 200);
-   }
-
-   function addLineBreak(str, lineWidth) {
-      var result = '';
-      while (str.length > 0) {
-         result += str.substring(0, lineWidth) + '\n';
-         str = str.substring(lineWidth);
-      }
-      return result;
-   }
-
-   
 </script>
 
 
@@ -205,8 +224,6 @@
    <div class="vertical dynamic-slider-control slider" id="slider" style="float: left; height: 100%"> 
 	   <input class="slider-input" id="slider-input"/>
    </div>
-
-   <iframe id="LoremIpsum" src="../media/LoremIpsum.txt" onload="readLoremIpsum()" style="visibility: hidden;"></iframe>
 
    <script type="text/javascript">
       var s = new Slider(document.getElementById("slider"), document.getElementById("slider-input"), "vertical");

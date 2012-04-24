@@ -1,3 +1,22 @@
+function createFontCanvas(width, height, fontname, fontsize) {
+    var imageCanvas = document.createElement( "canvas" );
+    var ctx = imageCanvas.getContext( "2d" );
+    imageCanvas.width = width;
+    imageCanvas.height = height;
+        
+    ctx.fillStyle = "#ffffff";  
+    ctx.font = fontsize + ' ' + fontname;
+    
+    var base = 32;
+    
+    for(var i = 0;i<128-base; i++){
+        var x = i%10, y = Math.floor(i/10);
+        ctx.fillText(String.fromCharCode(i+base),x*13,y*12.7+11);  
+    }
+    
+    return imageCanvas;
+}
+
 function Font() {
    this.vertices = gl.createBuffer();
    gl.bindBuffer(gl.ARRAY_BUFFER, this.vertices);
