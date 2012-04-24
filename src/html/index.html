@@ -96,8 +96,9 @@
             //vec2 pos = gl_PointCoord*vec2(0.1,-0.1) + findex;//-0.7,0.5);
             //gl_FragColor = vec4(1,1,1,1);//vec4(fcolor,1.0) * texture2D( texture, pos );
             //gl_FragColor = vec4(gl_FragCoord.y,1, 1, 1);
-            //gl_FragColor = vec4(gl_PointCoord, 1, 1);
-            gl_FragColor = texture2D(texture, gl_PointCoord / 10.0 + vec2(0.5, 0.5));
+            //gl_FragColor = vec4(gl_PointCoord.x, 1.0 - gl_PointCoord.y, 0, 1);
+            vec2 pos = vec2(gl_PointCoord.x, 1.0 - gl_PointCoord.y);
+            gl_FragColor = texture2D(texture, pos / 10.0 + vec2(0.1, 0.2));
          }
 		</script>
 
@@ -117,7 +118,7 @@
    function initGL(canvas) {
       try {
          gl = canvas.getContext("experimental-webgl",  { alpha: false });
-         gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);
+         //gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);
          setCanvasAndViewportSize();
       } catch (e) {
       }

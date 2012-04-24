@@ -40,10 +40,10 @@ function Square() {
    this.squareTexCoordBuffer = gl.createBuffer();
    gl.bindBuffer(gl.ARRAY_BUFFER, this.squareTexCoordBuffer);
    var texCoords = [
-      0.0, 0.0,
-      1.0, 0.0,
       0.0, 1.0,
-      1.0, 1.0
+      1.0, 1.0,
+      0.0, 0.0,
+      1.0, 0.0
          ];
    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(texCoords), gl.STATIC_DRAW);
    this.squareTexCoordBuffer.itemSize = 2;
