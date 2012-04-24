@@ -5,13 +5,14 @@ function createFontCanvas(width, height, fontname, fontsize) {
     imageCanvas.height = height;
         
     ctx.fillStyle = "#ffffff";  
-    ctx.font = fontsize + ' ' + fontname;
+    ctx.font = fontsize + 'px ' + fontname;
     
     var base = 32;
     
     for(var i = 0;i<128-base; i++){
         var x = i%10, y = Math.floor(i/10);
-        ctx.fillText(String.fromCharCode(i+base),x*13,y*12.7+11);  
+        var pX = x/10 * width, pY = y/10 * height;
+        ctx.fillText(String.fromCharCode(i+base),pX,pY+fontsize);  
     }
     
     return imageCanvas;

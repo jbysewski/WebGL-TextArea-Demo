@@ -42,7 +42,7 @@
 
          void main(void) {
             //gl_FragColor = vec4(vTextureCoord.s, vTextureCoord.t, 1.0, 1.0);
-            gl_FragColor = texture2D(uSampler, vTextureCoord);
+            gl_FragColor = texture2D(uSampler, vTextureCoord) + vec4(0,0,1,0.5);
          }
       </script>
 
@@ -62,24 +62,19 @@
       </script>
 
       <script id="font-vs" type="x-shader/x-vertex">                
-         //attribute float index;
-         //attribute vec3 color;
+         attribute float index;
+         attribute vec3 color;
          attribute vec3 aVertexPosition;
          uniform mat4 uMVMatrix;
          uniform mat4 uPMatrix;
 
-         //varying vec2 findex;
-         //varying vec3 fcolor;
+         varying vec2 voffset;
+         varying vec4 vcolor;
 
          void main(void) {
-            /*
-            fcolor = vec3(1.0,mod(index/10.0,1.0),mod(index/10.0,1.0));
-
-            findex = vec2(mod(index,10.0) * 0.1, floor(index/10.0) * 0.1+0.1);
-            vec4 mvPosition = uMVMatrix * vec4(aVertexPosition, 1.0 );
-            gl_PointSize = 10.0;
-            */
             gl_PointSize = 12.0;
+            vcolor = vec4(color,1);
+            voffset = vec2(mod(index,10.0) * 0.1, floor(index/10.0) * 0.1);
             gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
          }
 		</script>
@@ -88,22 +83,30 @@
          precision mediump float;
 
          uniform sampler2D texture;
-         /*
-         varying vec2 findex;
-         varying vec3 fcolor;
-         */
+         
+         varying vec2 voffset;
+         varying vec4 vcolor;
+         
          void main() {
-            //vec2 pos = gl_PointCoord*vec2(0.1,-0.1) + findex;//-0.7,0.5);
-            //gl_FragColor = vec4(1,1,1,1);//vec4(fcolor,1.0) * texture2D( texture, pos );
-            //gl_FragColor = vec4(gl_FragCoord.y,1, 1, 1);
-            //gl_FragColor = vec4(gl_PointCoord.x, 1.0 - gl_PointCoord.y, 0, 1);
             vec2 pos = vec2(gl_PointCoord.x, 1.0 - gl_PointCoord.y);
-            gl_FragColor = texture2D(texture, pos / 10.0 + vec2(0.1, 0.2));
+            gl_FragColor = vcolor * texture2D(texture, pos / 10.0 + voffset);
          }
 		</script>
 
 
 <script type="text/javascript">
+
+   var text = 
+            "\n" +
+            "Hello WebGL!\n" +
+            "This is a test for a simple 2D bitmap font drawing technique.\n" +
+            "Every character is drawn as a textured quad consisting of two triangles.\n" + 
+            "These are then textured with a texture containing a map of 256 characters\n" + 
+            "(ASCII). As WebGL which implements OpenGL ES does not allow for GL_QUAD or\n" +
+            "DisplayLists other possibilites for optimization have to be investigated.\n\n" +
+            "Another problem is the vertical spacing of the individual characters,\n" + 
+            "currently non-monospaced fonts will look really akward. Kerning will have\n" +
+            "to be taken into account too. I'm filling up with lorem ipsum.\n";
 
    var gl;
    var aspectRatio;
@@ -145,7 +148,7 @@
       fontShader = createProgram(
             "font-fs", 
             "font-vs", 
-            {vertexPositionAttribute: "aVertexPosition"}, 
+            {vertexPositionAttribute: "aVertexPosition", index: "index", color: "color"}, 
             {pMatrixUniform: "uPMatrix", mvMatrixUniform: "uMVMatrix", uTexture: "texture"});
    }
 
@@ -154,12 +157,27 @@
 
    var triangle, square, texture, grid2d;
 
+   var charBuffer, colorBuffer;
    function createScene() {
       triangle = new Triangle();
       square = new Square();
       //texture = loadTexture("../media/Monospaced.png");
-      texture = createTextureFromCanvas(createFontCanvas(128, 128, "monospaced", "12px"));
-      grid2d = new Grid2D(100, 100);
+      texture = createTextureFromCanvas(createFontCanvas(128, 128, "monospaced", 12));
+
+      var width=200, height=1000;
+      grid2d = new Grid2D(width, height);
+      charBuffer = createRandomNumberBuffer(width*height, 0, 100);
+      colorBuffer = createRandomNumberBuffer(width*height*3, 0.1, 0.9);
+   }
+
+   function createRandomNumberBuffer(count, min, max) {
+      var buffer = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+      var chars = [];
+      for(var i=0;i<count; i++) 
+         chars[i] = min + Math.random() * max;
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(chars), gl.STATIC_DRAW);
+      return buffer;
    }
 
    function drawScene() {
@@ -176,22 +194,13 @@
       gl.uniform1i(textureShader.uTexture, 0);
       gl.uniform1i(fontShader.uTexture, 0);
 
-      square.draw(textureShader, 3, -3, -10);
-      grid2d.draw(fontShader, -50, -5 - 100 + s.getValue() , -50);      
+      square.draw(textureShader, -3, -3, -10);
 
-      /*
-      drawText(
-            "Hello WebGL!\n" +
-            "This is a test for a simple 2D bitmap font drawing technique.\n" +
-            "Every character is drawn as a textured quad consisting of two triangles.\n" + 
-            "These are then textured with a texture containing a map of 256 characters\n" + 
-            "(ASCII). As WebGL which implements OpenGL ES does not allow for GL_QUAD or\n" +
-            "DisplayLists other possibilites for optimization have to be investigated.\n\n" +
-            "Another problem is the vertical spacing of the individual characters,\n" + 
-            "currently non-monospaced fonts will look really akward. Kerning will have\n" +
-            "to be taken into account too. I'm filling up with lorem ipsum.\n" +
-            loremIpsum);
-            */
+      gl.bindBuffer(gl.ARRAY_BUFFER, this.charBuffer);
+      gl.vertexAttribPointer(fontShader.index, 1, gl.FLOAT, false, 0, 0);
+      gl.bindBuffer(gl.ARRAY_BUFFER, this.colorBuffer);
+      gl.vertexAttribPointer(fontShader.color, 3, gl.FLOAT, false, 0, 0);
+      grid2d.draw(fontShader, -100, - s.getValue() , -100);      
    }
 
    var canvas;
@@ -212,6 +221,8 @@
       window.setTimeout(drawScene, 100);
    }
 
+   var scrollY = 970;
+
 </script>
 
 
@@ -228,8 +239,8 @@
 
    <script type="text/javascript">
       var s = new Slider(document.getElementById("slider"), document.getElementById("slider-input"), "vertical");
-      s.setMaximum(100)
-      s.setValue(100);
+      s.setMaximum(scrollY)
+      s.setValue(scrollY);
       s.onchange = function() {
          drawScene();
       }
